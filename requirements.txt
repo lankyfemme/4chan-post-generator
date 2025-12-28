@@ -1,4 +1,3 @@
-Pillow
-selenium
-discord
-requests
+pillow
+streamlit
+imgkit
