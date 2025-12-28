@@ -13,6 +13,11 @@ def zip_files(list_of_images):
     # Get the value of the buffer (the zip file's bytes)
     return buffer.getvalue()
 
+st.set_page_config(
+    page_title="4chan Post Generator"
+    page_icon="🤖"
+)
+
 greentext_title = st.text_input(
     "Title of your greentext:"
 )

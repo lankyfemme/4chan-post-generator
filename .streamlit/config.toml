@@ -11,3 +11,6 @@ primaryColor = "rgba(160, 76, 75)"
 backgroundColor = "rgba(53, 54, 49)"
 textColor = "rgba(217, 217, 217)"
 borderColor = "rgba(51, 23, 23)"
+
+[client]
+toolbarMode = "viewer"
