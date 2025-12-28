@@ -20,7 +20,7 @@ services:
         image: ghcr.io/lankyfemme/4chan-post-generator
         container_name: 4chan-post-generator
         restart: unless-stopped
-        posts:
+        ports:
             - 8501:8501
 ```
 
