@@ -14,7 +14,7 @@ def zip_files(list_of_images):
     return buffer.getvalue()
 
 st.set_page_config(
-    page_title="4chan Post Generator"
+    page_title="4chan Post Generator",
     page_icon="🤖"
 )
 
