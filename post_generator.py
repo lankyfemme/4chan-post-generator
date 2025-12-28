@@ -3,6 +3,10 @@ import os
 from PIL import Image
 from datetime import datetime
 import random
+import imgkit
+import io
+import math
+import requests
 
 def get_image_data(image_path):
     # Returns the image data of the image at the given path.
@@ -37,17 +41,31 @@ def create_blockquote(rtext):
     return final
 
 
-def greentext(post_subject, image_path, post_content):
+def generate_html(post_subject, image_link, post_content):
 
     blockquote = create_blockquote(post_content)
-    height, width, file_info = get_image_data(f'./{image_path}')
     formatted_date = datetime.now().strftime("%m/%d/%y(%a)%H:%M:%S")
 
     with open("./web/index_source.html", "r") as f:
         html_output = f.read()
 
-    html_output = html_output.replace("[FILE_NAME]", image_path)
-    html_output = html_output.replace("[FILE_PATH]", os.path.abspath(f'./{image_path}'))
+    # download the picture
+    image_name = image_link.split("/")[-1]
+    r = requests.get(image_link, stream=True)
+    with open(f'./pictures/{image_name}', 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024): 
+            if chunk:
+                f.write(chunk)
+
+    height, width, file_info = get_image_data(f'./pictures/{image_name}')
+
+    if len(image_link) > 40:
+        image_link = f"{image_link}"[:40] + '...' 
+    else:
+        image_link = f"{image_link}"
+
+    html_output = html_output.replace("[FILE_NAME]", image_link)
+    html_output = html_output.replace("[FILE_PATH]", os.path.abspath(f'./pictures/{image_name}'))
     html_output = html_output.replace("[FILE_INFO]", file_info)
     html_output = html_output.replace("[IMAGE_HEIGHT]", str(height))
     html_output = html_output.replace("[IMAGE_WIDTH]", str(width))
@@ -57,6 +75,55 @@ def greentext(post_subject, image_path, post_content):
     html_output = html_output.replace("[BLOCKQUOTE]", blockquote)
 
     return html_output
+
+def create_screenshots(html_input):
+    options = {
+        'width': 640,
+        'quality': 100,
+        'enable-local-file-access': None,
+        'allow': [
+            '/app/pictures',
+            '/app/web'
+        ]
+    }
+    image_bytes = imgkit.from_string(html_input, False, options=options)
+    image_stream = io.BytesIO(image_bytes)
+    image = Image.open(image_stream)
+    width, height = image.size
+    
+    number_of_pictures = math.floor(height / 1280)
+    completed_height = 0
+    images = []
+    pixels = image.load()
+    for i in range(number_of_pictures):
+        # we need to make sure we're not cropping in the middle of a line of text, so check the colour of each pixel on the crop line
+        # if the pixel contains any colour that isn't the background, then try the next row of pixels
+        height_of_screenshot = 1280
+        x = 0
+        while x < width:
+            pixel_colour = pixels[x, completed_height + height_of_screenshot]
+            if pixel_colour[0] < 251:
+                height_of_screenshot += 1
+                x = 0
+            x += 1
+
+        left = 0
+        top = completed_height
+        right = width
+        bottom = completed_height + height_of_screenshot
+        cropped_image = image.crop((left, top, right, bottom))
+        images.append(cropped_image)
+        completed_height += height_of_screenshot
+
+    # take the last screenshot, this will be shorter than the rest hence being outside the loop
+    left = 0
+    top = completed_height
+    right = width
+    bottom = height
+    cropped_image = image.crop((left, top, right, bottom))
+    images.append(cropped_image)
+
+    return images
 
 if __name__ == "__main__":
     post_content = """
@@ -71,6 +138,8 @@ more sample text for extra testing
 > cool.jpg
 anyone else taken the programmerpill, anons?
 """
+    html_output = generate_html("Example generate_html", "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg", post_content)   
     with open("./web/test_output.html", "w+") as f:
-        f.write(greentext("Example Greentext", "pictures/example.jpg", post_content))
-
+        f.write(html_output)
+    for image in create_screenshots(html_output):
+        image.show()
