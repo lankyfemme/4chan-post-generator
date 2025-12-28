@@ -1,0 +1,13 @@
+[theme.light]
+base="light"
+primaryColor = "rgba(160, 76, 75)"
+backgroundColor = "rgba(254, 255, 237)"
+textColor = "rgba(28, 28, 28)"
+borderColor = "rgba(160, 76, 75)"
+
+[theme.dark]
+base="dark"
+primaryColor = "rgba(160, 76, 75)"
+backgroundColor = "rgba(53, 54, 49)"
+textColor = "rgba(217, 217, 217)"
+borderColor = "rgba(51, 23, 23)"
