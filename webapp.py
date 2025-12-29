@@ -3,6 +3,8 @@ import post_generator
 import io
 from PIL import Image
 import zipfile
+import random
+from magic import Magic
 
 def zip_files(list_of_images):
     buffer = io.BytesIO()
@@ -22,9 +24,9 @@ greentext_title = st.text_input(
     "Title of your greentext:"
 )
 
-greentext_image = st.text_input(
-    "Image link:",
-    "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg"
+greentext_image = st.file_uploader(
+    "Image upload:",
+    type=["jpg", "jpeg", "png"]
 )
 
 greentext_input = st.text_area(
@@ -35,7 +37,18 @@ greentext_input = st.text_area(
 """
 )
 
-html = post_generator.generate_html(greentext_title, greentext_image, greentext_input)
+if greentext_image:
+
+    mime_type = Magic(mime=True).from_buffer(greentext_image.getvalue())
+
+    greentext_image_name = f'{random.randint(100000,999999)}.{mime_type.split('/')[-1]}'
+
+    with open(f'./pictures/{greentext_image_name}', 'wb+') as f:
+        f.write(greentext_image.getvalue())
+else:
+    greentext_image_name = None
+
+html = post_generator.generate_html(greentext_title, greentext_image_name, greentext_input)
 images = post_generator.create_screenshots(html)
 
 image_bytes = []

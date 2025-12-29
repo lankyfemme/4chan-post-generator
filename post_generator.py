@@ -41,7 +41,7 @@ def create_blockquote(rtext):
     return final
 
 
-def generate_html(post_subject, image_link, post_content):
+def generate_html(post_subject, image_name, post_content):
 
     blockquote = create_blockquote(post_content)
     formatted_date = datetime.now().strftime("%m/%d/%y(%a)%H:%M:%S")
@@ -49,26 +49,27 @@ def generate_html(post_subject, image_link, post_content):
     with open("./web/index_source.html", "r") as f:
         html_output = f.read()
 
-    # download the picture
-    image_name = image_link.split("/")[-1]
-    r = requests.get(image_link, stream=True)
-    with open(f'./pictures/{image_name}', 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024): 
-            if chunk:
-                f.write(chunk)
+    if image_name:
+        height, width, file_info = get_image_data(f'./pictures/{image_name}')
 
-    height, width, file_info = get_image_data(f'./pictures/{image_name}')
+        if len(image_name) > 40:
+            image_name = f"{image_name}"[:40] + '...' 
+        else:
+            image_name = f"{image_name}"
 
-    if len(image_link) > 40:
-        image_link = f"{image_link}"[:40] + '...' 
-    else:
-        image_link = f"{image_link}"
+        html_output = html_output.replace("[FILE_NAME]", image_name)
+        html_output = html_output.replace("[FILE_PATH]", os.path.abspath(f'./pictures/{image_name}'))
+        html_output = html_output.replace("[FILE_INFO]", file_info)
+        html_output = html_output.replace("[IMAGE_HEIGHT]", str(height))
+        html_output = html_output.replace("[IMAGE_WIDTH]", str(width))
 
-    html_output = html_output.replace("[FILE_NAME]", image_link)
-    html_output = html_output.replace("[FILE_PATH]", os.path.abspath(f'./pictures/{image_name}'))
-    html_output = html_output.replace("[FILE_INFO]", file_info)
-    html_output = html_output.replace("[IMAGE_HEIGHT]", str(height))
-    html_output = html_output.replace("[IMAGE_WIDTH]", str(width))
+    else: 
+        html_output = html_output.replace("File:", '')
+        html_output = html_output.replace("[FILE_NAME]", '')
+        html_output = html_output.replace("[FILE_PATH]", '')
+        html_output = html_output.replace("[FILE_INFO]", '')
+        html_output = html_output.replace("[IMAGE_HEIGHT]", '')
+        html_output = html_output.replace("[IMAGE_WIDTH]", '')
     html_output = html_output.replace("[POST_SUBJECT]", post_subject)
     html_output = html_output.replace("[DATE]", formatted_date)
     html_output = html_output.replace("[RANDOM_INT_REPLY]", str(random.randint(10000000, 99999999)))
@@ -138,7 +139,7 @@ more sample text for extra testing
 > cool.jpg
 anyone else taken the programmerpill, anons?
 """
-    html_output = generate_html("Example generate_html", "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/16620/production/_91408619_55df76d5-2245-41c1-8031-07a4da3f313f.jpg", post_content)   
+    html_output = generate_html("Example generate_html", "example.jpg", post_content)   
     with open("./web/test_output.html", "w+") as f:
         f.write(html_output)
     for image in create_screenshots(html_output):

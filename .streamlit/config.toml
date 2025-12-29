@@ -14,3 +14,6 @@ borderColor = "rgba(51, 23, 23)"
 
 [client]
 toolbarMode = "viewer"
+
+[server]
+maxUploadSize = 20
