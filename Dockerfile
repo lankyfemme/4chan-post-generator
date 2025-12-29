@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY . /app
 
+RUN apk update && apk add libmagic
+
 RUN pip3 install -r requirements.txt
 
 EXPOSE 8501
